@@ -1,5 +1,6 @@
 package dsaa.lab06;
 
+import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Scanner;
@@ -224,11 +225,11 @@ public class Document {
         int n = arr.length;
         int[] temp = new int[n];
 
-        for (int width = 1; width < n; width *= 2) {
+        for (int width = 1; width < n; width *= 2) { //chunking 2^i
             //Merge
-            for (int left = 0; left < n; left += 2 * width) {
-                int mid = Math.min(left + width, n);
-                int right = Math.min(left + 2 * width, n);
+            for (int left = 0; left < n; left += 2 * width) { //go from left in 2*width steps
+                int mid = Math.min(left + width, n); //if it exceeds left +width then its clamped at n
+                int right = Math.min(left + 2 * width, n); //same as above
                 merge(arr, temp, left, mid, right);
             }
             showArray(arr);
@@ -243,14 +244,13 @@ public class Document {
         for (int i = left; i < right; i++) {
             temp[i] = arr[i];
         }
-        int i = left;
-        int j = mid;
-        for (int k = left; k < right; k++) {
-            if (i < mid && (j >= right || temp[i] <= temp[j])) { // check if left subarray is exhausted and check if the right subarray is exhausted or
-                // if they are both not exhausted, then just compare elements and choose which one is smaller and put it into the array
+        int i = left; //start of left
+        int j = mid;//start of right
+        for (int k = left; k < right; k++) { //decide whether to pull from left or right
+            if (i < mid && (j >= right || temp[i] <= temp[j])) { //if left still has elements and (either right is exhausted or element from left is smaller
                 arr[k] = temp[i];
                 i++;
-            } else { //left is empty or right exists and is smaller, take from right
+            } else { //else take from right so either left is exhausted or right is not exhausted and smaller
                 arr[k] = temp[j];
                 j++;
             }
@@ -262,41 +262,35 @@ public class Document {
         showArray(arr);
 
         int n = arr.length;
-        if(n==0)
-            return;
+        if (n == 0) return;
 
-        int max=Integer.MIN_VALUE;
-        for (int i = 0; i < arr.length; i++) {
-            if(arr[i]>max)
-                max=arr[i];
-        }
-
-        int[] temp = new int[n]; //temporary
+        int[] temp  = new int[n];
         int[] count = new int[10];
 
-        for (int exp = 1; max / exp > 0; exp *= 10) { //Pass by every power of 10 to extract the digits
-            Arrays.fill(count,0);
+        for (int exp = 1; exp <= 100; exp *= 10) {
 
-            for (int i = 0; i < arr.length; i++) {
-                count[(arr[i]/exp)%10]++; //the extracted digit count
+            Arrays.fill(count, 0);
+
+            for (int i = 0; i < n; i++) {
+                count[(arr[i] / exp) % 10]++; //extract digit and add its occurence to count
+
             }
 
             for (int i = 1; i < 10; i++) {
-                count[i]+=count[i-1]; //Change count[] to now have position of this digit in temp
+                count[i] += count[i - 1]; //get the position: if there is 0 then next number will begin at the same index
+                // because this one doesnt appear, the count of digit occurences is added so that count stores now indexes of beggining of every digit
             }
 
-
-            for (int i = n - 1; i >= 0; i--) { //go in reverse order to have it sorted in ascending order in respect to the current exponent
-                int digit = (arr[i] / exp) % 10; //current digit
-                count[digit]--; //point the index
-                temp[count[digit]] = arr[i]; //build the partially sorted temporary helper array
+            for (int i = n - 1; i >= 0; i--) { //build the partially sorted temp in ascending by digit manner by going from the last element
+                int d = (arr[i] / exp) % 10; //get the digit
+                temp[--count[d]] = arr[i]; //--count[d] means: get index of the digit of current element from arr, then put it into temp,
             }
+
             System.arraycopy(temp, 0, arr, 0, n);
 
+            // 3) print after this pass
             showArray(arr);
         }
-        showArray(arr);
-
     }
 
 }
